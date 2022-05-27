@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score, r2_score
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, LabelEncoder, OneHotEncoder, \
@@ -33,7 +34,6 @@ x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2, shuffle=True
 scalar = StandardScaler()
 x_train = scalar.fit_transform(x_train)
 x_test = scalar.transform(x_test)
-x = scalar.fit_transform(x)
 RFC = RandomForestClassifier(random_state=42)
 RFC.fit(x_train,y_train)
 y_predicted = RFC.predict(x_test)
@@ -79,7 +79,12 @@ kfold = KFold(n_splits=3, shuffle = True, random_state=42)
 scores2 = cross_val_score(model, x_train, y_train, cv=kfold)
 print('KFold Accuracy : %.3f' % np.mean(scores2))
 
-
+#LinearRegression
+model = LinearRegression()
+model.fit(x_train,y_train)
+print('LinearRegression Accuracy : %.3f' % model.score(x_test, y_test))
+print(model.score(x_train, y_train))
+print(model.score(x_test, y_test))
 
 # #MinMaxScaler_RandomForestClassifier
 # x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2, shuffle=True)
