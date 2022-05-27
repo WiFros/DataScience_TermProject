@@ -10,31 +10,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import KFold, cross_val_score
 from xgboost import XGBRegressor
 
-
-def bestSearch(param, df, target):
-    '''
-    description : A function that finds the best combination of scale and model with only numeric columns
-
-    :param param: Dictionary data type, 'scaler' and 'model' are key values.
-    :param df: Data to scale
-    :param target: Column to predict
-    :return: Returns the best combination with the highest score.
-    '''
-
-    scaler = np.array(param.get('scaler'))
-    model = np.array(param.get('model'))
-    bestDi = {}
-
-    X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=42)
-    for s in scaler:
-        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
-        for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
-            print(s + ", " + m, bestDi[s + ", " + m])
-
-    return max(bestDi, key=bestDi.get), max(bestDi.values())
-
-
 def bestSearchEncoding(param, df, target):
     '''
     description : A function that finds the optimal combination of scalers, models, and encoders in data containing categorical variables
@@ -88,32 +63,6 @@ def scaled(X_train, X_test, scaler):
         X_train_scale = mmScaler.fit_transform(X_train)
         X_test_scale = mmScaler.transform(X_test)
         return X_train_scale, X_test_scale
-
-
-def encoding(encoder, cols, df):
-    '''
-    Description:  A function that replaces categorical columns with numeric columns
-
-    :param encoder: Encode to use, encoder has 'labelEncoder', 'oneHotEncoder'
-    :param cols: Categorical columns
-    :param df: data to encode
-    :return: encoded data
-    '''
-    if (encoder == "labelEncoder"):
-        label_df = df.copy()
-        for c in cols:
-            lb = LabelEncoder()
-            lb.fit(list(df[c].values))
-            label_df[c] = lb.transform(list(df[c].values))
-
-        return label_df
-
-    elif (encoder == "oneHotEncoder"):
-        onehot_df = df.copy()
-        for c in cols:
-            onehot_df = pd.get_dummies(data=onehot_df, columns=[c])
-
-        return onehot_df
 
 
 def predict(model, X_train_scale, X_test_scale, y_train, y_test):
