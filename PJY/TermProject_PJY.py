@@ -35,7 +35,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 
 # exploratory data analysis
-df = pd.read_csv("../star_classification.csv")
+df = pd.read_csv("./Dataset/star_classification.csv")
 print(df.head())
 print(df.tail())
 print(df.info())
@@ -53,4 +53,10 @@ sns.heatmap(df.corr(), cmap="PuBu", annot=True, linewidths=0.5, fmt='.2f', ax=ax
 plt.show()
 
 corr = df.corr()
-corr["class"].sort_values()
+print(corr["class"].sort_values())
+df = df.drop(['obj_ID','alpha','delta','run_ID','rerun_ID','cam_col','field_ID','fiber_ID'], axis = 1)
+
+print(df)
+
+
+
