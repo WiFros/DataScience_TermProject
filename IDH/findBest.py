@@ -14,15 +14,6 @@ from xgboost import XGBClassifier
 
 
 def bestSearch(param, df, target):
-    '''
-    description : A function that finds the best combination of scale and model with only numeric columns
-
-    :param param: Dictionary data type, 'scaler' and 'model' are key values.
-    :param df: Data to scale
-    :param target: Column to predict
-    :return: Returns the best combination with the highest score.
-    '''
-
     scaler = np.array(param.get('scaler'))
     model = np.array(param.get('model'))
     bestDi = {}
@@ -38,14 +29,6 @@ def bestSearch(param, df, target):
 
 
 def scaled(X_train, X_test, scaler):
-    '''
-    Description : A function that scales to the scale received as a parameter.
-
-    :param X_train: train data
-    :param X_test: test data
-    :param scaler: Scaler to use, scaler has 'standard', 'minmax', and 'robust'.
-    :return: scaled train data, test data
-    '''
     if scaler == "standard":
         stdScaler = StandardScaler()
         X_train_scale = stdScaler.fit_transform(X_train)
@@ -65,25 +48,12 @@ def scaled(X_train, X_test, scaler):
         return X_train_scale, X_test_scale
 
 
-
-
 def predict(model, X_train_scale, X_test_scale, y_train, y_test):
-    '''
-    Description: A function that learns targets using models received with scale and encoded data, and to predict targets with learned models.
-
-    :param model: Model to use for learning, model has '"adaboost", "decisiontree", "bagging", "XGBoost", "randomforest" and "gradient"
-    :param X_train_scale: Scale and encoded data for learning
-    :param X_test_scale: Data to use for predictions
-    :param y_train: Target data for learning
-    :param y_test: Target data to use for predictions
-    :return: Returns the score of the model.
-    '''
-
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
         print("ada start")
-        # AdaBoostRegressor
+        # AdaBoostClassifier
         ada_reg = AdaBoostClassifier()
         ada_param = {
             'n_estimators': [25, 50, 100, 200],
@@ -95,7 +65,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
 
     elif model == "decisiontree":
         print("decision start")
-        # DecisionTreeRegressor
+        # DecisionTreeClassifier
         decision_tree_model = DecisionTreeClassifier()
         param_grid = {
             'max_depth': [None, 2, 3, 4, 5, 6]
@@ -106,7 +76,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
 
     elif model == "bagging":
         print("bagging start")
-        # BaggingRegressor
+        # BaggingClassifier
         bagging = BaggingClassifier()
         b_param_grid = {
             'n_estimators': [10, 50, 100],  # 3
@@ -119,7 +89,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
 
     elif model == "XGBoost":
         print("xg start")
-        # XGBRegressor
+        # XGBClassifier
         XGB = XGBClassifier()
         xgb_param_grid = {
             'learning_rate': [0.1, 0.01],
@@ -131,7 +101,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
 
     elif model == "randomforest":
         print("random forest start")
-        # RandomForestRegressor
+        # RandomForestClassifier
         forest = RandomForestClassifier()
         fo_grid = {
             "n_estimators": [200],
@@ -146,7 +116,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
 
     elif model == "gradient":
         print("gradient start")
-        # GradientBoostingRegressor
+        # GradientBoostingClassifier
         gbr = GradientBoostingClassifier()
         param = {
             "n_estimators": [25, 50, 100],
@@ -165,15 +135,5 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
             'n_neighbors': list(range(1, 10)),
         }
         gsGd = GridSearchCV(knn, param_grid=param, cv=kfold, n_jobs=-1)
-        gsGd.fit(X_train_scale, y_train)
-        return gsGd.score(X_test_scale, y_test)
-    elif model == "LinearRegression":
-        print("LinearRegression start")
-        # LinearRegression
-        lr = LinearRegression()
-        param = {
-                      "fit_intercept": [True, False],
-                      }
-        gsGd = GridSearchCV(lr, param_grid=param, cv=kfold, n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
         return gsGd.score(X_test_scale, y_test)

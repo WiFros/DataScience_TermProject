@@ -29,11 +29,11 @@ plt.show()
 # Galaxies are easier to seperate than stars and stars could have done.
 # Although quasars and stars shows parallel quantities, they have some distinctive statistical distributions to filters to help to decide which one it is.
 # Galaxies는 직관적으로 분류가 되는데 stars와 QSO는 아니다. 그러므로 boxplot을 통해 둘을 비교
-for column in ['alpha', 'delta','r', 'i','field_ID','redshift', 'plate', 'MJD', 'fiber_ID']:
-    plt.figure(figsize=(12,6))
-    sns.histplot(data=df, x=column, kde=True, hue="class")
-    plt.title(column)
-    plt.show()
+# for column in ['alpha', 'delta','r', 'i','field_ID','redshift', 'plate', 'MJD', 'fiber_ID']:
+#     plt.figure(figsize=(12,6))
+#     sns.histplot(data=df, x=column, kde=True, hue="class")
+#     plt.title(column)
+#     plt.show()
 
 
 
@@ -43,11 +43,11 @@ for column in ['alpha', 'delta','r', 'i','field_ID','redshift', 'plate', 'MJD', 
 # STAR와 QSO를 비교했을 때 위의 설명대로 몇개는 비슷한 성질을 띄고 있어서 필요없는 데이터이지만 몇개는 다른점을 띄어 필요한 데이터임 또한 outlier가 많이 존재함
 star_and_qso = df[(df["class"] == "STAR") | (df["class"] == "QSO")]
 
-for column in ['alpha', 'delta','r', 'i','field_ID','redshift', 'plate', 'MJD', 'fiber_ID']:
-    plt.figure(figsize=(12,6))
-    plt.title(column)
-    sns.boxplot(data=star_and_qso, x=column, y="class", palette="flare", linewidth=1.5, saturation=0.6)
-    plt.show()
+# for column in ['alpha', 'delta','r', 'i','field_ID','redshift', 'plate', 'MJD', 'fiber_ID']:
+#     plt.figure(figsize=(12,6))
+#     plt.title(column)
+#     sns.boxplot(data=star_and_qso, x=column, y="class", palette="flare", linewidth=1.5, saturation=0.6)
+#     plt.show()
 
 df = df.drop(['alpha', 'delta', 'field_ID'], axis=1)
 
@@ -96,5 +96,5 @@ param = {
     "model": ["KNN", "decisiontree", "bagging", "adaboost", "XGBoost", "gradient", "randomforest"]
 }
 
-# best_params, best_score = findBest.bestSearch(param, x, target)
-# print("Best Combination, Score:", best_params, best_score)
+best_params, best_score = findBest.bestSearch(param, x, target)
+print("Best Combination, Score:", best_params, best_score)
