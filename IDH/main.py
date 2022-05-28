@@ -74,6 +74,7 @@ outliers = shape1[0] - shape2[0]
 
 print("\n\nTotal count of deleted outliers: ", outliers)
 
+#heatmap을 통해 Feature Selection
 plt.figure(figsize=(14, 10))
 sns.heatmap(df.corr(), annot=True, fmt=".2f", linewidths=.7)
 plt.show()
