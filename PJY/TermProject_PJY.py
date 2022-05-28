@@ -41,13 +41,9 @@ bestParam = {
         "encoder": ["labelEncoder", "oneHotEncoder"],
         "model": ["LinearRegression","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
 }
-<<<<<<< Updated upstream
-#
 # best_params, best_score = findBest_2.bestSearchEncoding(bestParam, x, y)
 # print ("Best Combination, Score:", best_params, best_score)
-=======
 
 best_params, best_score = findBest_2.bestSearch(bestParam, x, y)
 print ("Best Combination, Score:", best_params, best_score)
 print("End")
->>>>>>> Stashed changes
