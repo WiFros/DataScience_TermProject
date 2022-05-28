@@ -67,7 +67,6 @@ target = df['class']
 
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
-    "encoder": ["labelEncoder", "oneHotEncoder"],
     "model": ["LinearRegression","KNN","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
 }
 

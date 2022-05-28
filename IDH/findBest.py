@@ -65,30 +65,6 @@ def scaled(X_train, X_test, scaler):
         return X_train_scale, X_test_scale
 
 
-def encoding(encoder, cols, df):
-    '''
-    Description:  A function that replaces categorical columns with numeric columns
-
-    :param encoder: Encode to use, encoder has 'labelEncoder', 'oneHotEncoder'
-    :param cols: Categorical columns
-    :param df: data to encode
-    :return: encoded data
-    '''
-    if (encoder == "labelEncoder"):
-        label_df = df.copy()
-        for c in cols:
-            lb = LabelEncoder()
-            lb.fit(list(df[c].values))
-            label_df[c] = lb.transform(list(df[c].values))
-
-        return label_df
-
-    elif (encoder == "oneHotEncoder"):
-        onehot_df = df.copy()
-        for c in cols:
-            onehot_df = pd.get_dummies(data=onehot_df, columns=[c])
-
-        return onehot_df
 
 
 def predict(model, X_train_scale, X_test_scale, y_train, y_test):
