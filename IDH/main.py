@@ -2,6 +2,7 @@ import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import findBest
 warnings.filterwarnings('ignore')
 
 df = pd.read_csv("../Dataset/star_classification.csv")
@@ -67,8 +68,8 @@ target = df['class']
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
     "encoder": ["labelEncoder", "oneHotEncoder"],
-    "model": ["LinearRegression","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
+    "model": ["LinearRegression","KNN","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
 }
 
-# best_params, best_score = findBest.bestSearchEncoding(bestParam, x, target)
-# print ("Best Combination, Score:", best_params, best_score)
+best_params, best_score = findBest.bestSearch(bestParam, x, target)
+print ("Best Combination, Score:", best_params, best_score)
