@@ -32,7 +32,7 @@ def bestSearchEncoding(param, df, target):
         X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
             bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
-
+            print("test"+bestDi[s + ", " + m])
     return max(bestDi, key=bestDi.get), max(bestDi.values())
 
 

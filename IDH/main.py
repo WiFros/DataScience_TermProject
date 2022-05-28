@@ -1,3 +1,5 @@
+import warnings
+
 import numpy
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +15,8 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, La
 from sklearn.cluster import KMeans
 import numpy as np
 import findBest
+
+warnings.filterwarnings('ignore')
 
 df = pd.read_csv("../Dataset/star_classification.csv")
 
