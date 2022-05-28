@@ -14,9 +14,10 @@ from sklearn.cluster import KMeans
 import numpy as np
 import findBest_2
 
-df = pd.read_csv("./Dataset/star_classification.csv")
+df = pd.read_csv("star_classification.csv")
 df.head()
 df.info()
+
 df["class"].value_counts()
 sns.countplot(df["class"], palette="Set3")
 plt.title("Class ",fontsize=10)
@@ -40,6 +41,6 @@ bestParam = {
         "encoder": ["labelEncoder", "oneHotEncoder"], # 솔직히 필요한진 ㅁ르겟...
         "model": ["KNN","LinearRegression","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
 }
-
-best_params, best_score = findBest_2.bestSearchEncoding(bestParam, x, y)
-print ("Best Combination, Score:", best_params, best_score)
+#
+# best_params, best_score = findBest_2.bestSearchEncoding(bestParam, x, y)
+# print ("Best Combination, Score:", best_params, best_score)
