@@ -1,62 +1,45 @@
-import numpy as np
+import numpy
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-plt.style.use("ggplot");
-sns.set(rc={'figure.figsize': (12, 7)})
-
-# Encoder
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import OrdinalEncoder
-
-# Test_train split
-from sklearn.model_selection import train_test_split
-
-# Scaler
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import RobustScaler
-
-# Algorithm
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import accuracy_score, r2_score
+from sklearn.model_selection import train_test_split, KFold, cross_val_score, StratifiedKFold
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, LabelEncoder, OneHotEncoder, \
+    OrdinalEncoder
+from sklearn.cluster import KMeans
+import numpy as np
+import findBest_2
 
-# Evaluation
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import roc_curve
-from sklearn.metrics import confusion_matrix
-
-from sklearn.model_selection import StratifiedKFold as skf
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import RandomizedSearchCV
-
-
-
-# exploratory data analysis
 df = pd.read_csv("./Dataset/star_classification.csv")
-print(df.head())
-print(df.tail())
-print(df.info())
-print(df.isnull().sum())
-print(df["class"].value_counts())
-print(df.describe())
-
+df.head()
+df.info()
+df["class"].value_counts()
 sns.countplot(df["class"], palette="Set3")
-plt.title("Class ", fontsize=10)
-plt.show()
-df["class"] = [0 if i == "GALAXY" else 1 if i == "STAR" else 2 for i in df["class"]]
-
-f, ax = plt.subplots(figsize=(12, 8))
-sns.heatmap(df.corr(), cmap="PuBu", annot=True, linewidths=0.5, fmt='.2f', ax=ax)
+plt.title("Class ",fontsize=10)
 plt.show()
 
-corr = df.corr()
-print(corr["class"].sort_values())
+f,ax = plt.subplots(figsize=(12,8))
+sns.heatmap(df.corr(), cmap="PuBu", annot=True, linewidths=0.5, fmt= '.2f',ax=ax)
+plt.show()
+
+le = LabelEncoder()
+df["class"] = le.fit_transform(df["class"])
+df["class"] = df["class"].astype(int)
+
 df = df.drop(['obj_ID','alpha','delta','run_ID','rerun_ID','cam_col','field_ID','fiber_ID'], axis = 1)
 
-print(df)
+x = df.drop('class', axis=1)
+y = df['class']
 
+bestParam = {
+        "scaler": ["standard", "robust", "minmax"],
+        "encoder": ["labelEncoder", "oneHotEncoder"], # 솔직히 필요한진 ㅁ르겟...
+        "model": ["KNN","LinearRegression","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
+}
 
-
+best_params, best_score = findBest_2.bestSearchEncoding(bestParam, x, y)
+print ("Best Combination, Score:", best_params, best_score)
