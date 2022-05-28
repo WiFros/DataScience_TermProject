@@ -132,53 +132,55 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
+        print("ada start")
         # AdaBoostRegressor
         ada_reg = AdaBoostClassifier()
         ada_param = {
             'n_estimators': [25, 50, 100, 200],
             'learning_rate': [0.01, 0.1] #8번 러닝
         }
-        ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold)
+        ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold,n_jobs=-1)
         ada.fit(X_train_scale, y_train)
         return ada.score(X_test_scale, y_test)
 
     elif model == "decisiontree":
+        print("decision start")
         # DecisionTreeRegressor
         decision_tree_model = DecisionTreeClassifier()
         param_grid = {
-            'criterion': ['poisson'],
-            'max_depth': [None, 2, 3, 4, 5, 6],
+            'max_depth': [None, 2, 3, 4, 5, 6]
         }
-        gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold)
+        gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold,n_jobs=-1)
         gsDT.fit(X_train_scale, y_train)
         return gsDT.score(X_test_scale, y_test)
 
     elif model == "bagging":
+        print("bagging start")
         # BaggingRegressor
         bagging = BaggingClassifier()
         b_param_grid = {
             'n_estimators': [10, 50, 100],#3
-            'max_samples': [1, 5, 10],#3
-            'max_features': [1, 5, 10],#3 = 9번 도는것..?
             'n_jobs' : [-1]
 
         }
-        gsBagging = GridSearchCV(bagging, param_grid=b_param_grid, cv=kfold)
+        gsBagging = GridSearchCV(bagging, param_grid=b_param_grid, cv=kfold,n_jobs=-1)
         gsBagging.fit(X_train_scale, y_train)
         return gsBagging.score(X_test_scale, y_test)
 
     elif model == "XGBoost":
+        print("xg start")
         # XGBRegressor
         XGB = XGBClassifier()
         xgb_param_grid = {
             'learning_rate': [0.1, 0.01],
             'max_depth': [1, 5, 10, 50],
         }
-        gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold)
+        gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold,n_jobs=-1)
         gsXGB.fit(X_train_scale, y_train)
         return gsXGB.score(X_test_scale, y_test)
 
     elif model == "randomforest":
+        print("random forest start")
         # RandomForestRegressor
         forest = RandomForestClassifier()
         fo_grid = {
@@ -188,30 +190,20 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
             'n_jobs' : [-1]
 
         }
-        gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold)
+        gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold,n_jobs=-1)
         gsRd.fit(X_train_scale, y_train)
         return gsRd.score(X_test_scale, y_test)
 
     elif model == "gradient":
+        print("gradient start")
         # GradientBoostingRegressor
         gbr = GradientBoostingClassifier()
         param = {
             "n_estimators": [25, 50, 100],
-            "max_depth": [1, 2, 4],
-            "learning_rate": [1, 0.1, 0.01],
-            "subsample": [1, 0.5, 0.01],
+            "learning_rate": [0.1, 0.01],
+            "subsample": [0.5, 0.01]
             # 27번
         }
-        gsGd = GridSearchCV(gbr, param_grid=param, cv=kfold)
+        gsGd = GridSearchCV(gbr, param_grid=param, cv=kfold,n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
         return gsGd.score(X_test_scale, y_test)
-    elif model == "KNN":
-        # GradientBoostingRegressor
-        knn = KNeighborsClassifier()
-        knn_param = {
-            'n_jobs' : [-1]
-            # 27번
-        }
-        gsKn = GridSearchCV(knn, param_grid=knn_param, cv=kfold)
-        gsKn.fit(X_train_scale, y_train)
-        return gsKn.score(X_test_scale, y_test)
