@@ -67,7 +67,7 @@ target = df['class']
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
     "encoder": ["labelEncoder", "oneHotEncoder"],
-    "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
+    "model": ["LinearRegression","adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest"]
 }
 
 # best_params, best_score = findBest.bestSearchEncoding(bestParam, x, target)
