@@ -2,7 +2,7 @@ import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import findBest
+import FindBest
 
 warnings.filterwarnings('ignore')
 
@@ -10,14 +10,14 @@ df = pd.read_csv("../Dataset/star_classification.csv")
 
 print("_____ Data type _____")
 df.info()
-print("_____ statistical data _____")
-print(df.describe().T)
-print("_____ Head data _____")
-print(df.head())
-print("_____ Count of dirty data _____")
-print(df.isna().sum())
 
-print("_____ Number of each target value _____")
+print("\n\n_____ statistical data _____")
+print(df.describe().T)
+print("\n\n_____ Head data _____")
+print(df.head())
+
+
+print("\n\n_____ Number of each target value _____")
 print(df["class"].value_counts())
 
 sns.countplot(df["class"], palette="Set3")
@@ -25,7 +25,7 @@ plt.title("Class ", fontsize=10)
 plt.show()
 
 
-
+# Data Inspection
 # Galaxies are easier to seperate than stars and stars could have done.
 # Although quasars and stars shows parallel quantities, they have some distinctive statistical distributions to filters to help to decide which one it is.
 # Galaxies는 직관적으로 분류가 되는데 stars와 QSO는 아니다. 그러므로 boxplot을 통해 둘을 비교
@@ -49,8 +49,16 @@ star_and_qso = df[(df["class"] == "STAR") | (df["class"] == "QSO")]
 #     sns.boxplot(data=star_and_qso, x=column, y="class", palette="flare", linewidth=1.5, saturation=0.6)
 #     plt.show()
 
+
+# Data Preprocessing
+
+# STAR와 QSO를 비교한 boxplot을 봤을 때 구분되는 column이 아닌 경우 drop
 df = df.drop(['alpha', 'delta', 'field_ID'], axis=1)
 
+
+# Check missing data
+print("\n\n_____ Count of missing data _____")
+print(df.isna().sum())
 
 # Find outlier and delete outlier
 shape1 = df.shape
@@ -74,18 +82,20 @@ outliers = shape1[0] - shape2[0]
 
 print("\n\nTotal count of deleted outliers: ", outliers)
 
+# After dealing outlier
+print("_____ After dealing outlier _____")
+print(df.info())
+
 #heatmap을 통해 Feature Selection
 plt.figure(figsize=(14, 10))
 sns.heatmap(df.corr(), annot=True, fmt=".2f", linewidths=.7)
 plt.show()
 
-# Feature Selection
+# Feature Selection heatmap에서 'class' column과 연관관계가 0.1 이하인 경우 연관성이 없다고 판단해서 drop
 df = df.drop(['obj_ID',  'run_ID', 'rerun_ID', 'cam_col', 'fiber_ID'], axis=1)
 
-# After dealing outlier
-print("_____ After dealing outlier _____")
-print(df.info())
 
+# categorical data 처리
 df['class'] = df['class'].replace({'GALAXY': 0,
                                    'STAR': 1,
                                    'QSO': 2})
@@ -97,5 +107,5 @@ param = {
     "model": ["KNN", "decisiontree", "bagging", "adaboost", "XGBoost", "gradient", "randomforest"]
 }
 
-best_params, best_score = findBest.bestSearch(param, x, target)
+best_params, best_score = FindBest.FindBest(param, x, target)
 print("Best Combination, Score:", best_params, best_score)
