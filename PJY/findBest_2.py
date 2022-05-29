@@ -5,6 +5,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, OneHotEncoder
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
@@ -31,7 +32,7 @@ def bestSearch(param, df, target):
     for s in scaler:
         X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
+            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
             print(s + ", " + m, bestDi[s + ", " + m])
 
     return max(bestDi, key=bestDi.get), max(bestDi.values())
@@ -56,9 +57,9 @@ def bestSearchEncoding(param, df, target):
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
 
     for s in scaler:
-        X_train_scale, X_test_scale,scaler_str = scaled(X_train, X_test, s)
+        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,scaler_str)
+            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
 
     return max(bestDi, key=bestDi.get), max(bestDi.values())
 
@@ -77,19 +78,19 @@ def scaled(X_train, X_test, scaler):
         stdScaler = StandardScaler()
         X_train_scale = stdScaler.fit_transform(X_train)
         X_test_scale = stdScaler.transform(X_test)
-        return X_train_scale, X_test_scale, 'standard'
+        return X_train_scale, X_test_scale
 
     elif scaler == "robust":
         robustScaler = RobustScaler()
         X_train_scale = robustScaler.fit_transform(X_train)
         X_test_scale = robustScaler.transform(X_test)
-        return X_train_scale, X_test_scale,'robust'
+        return X_train_scale, X_test_scale
 
     elif scaler == "minmax":
         mmScaler = MinMaxScaler()
         X_train_scale = mmScaler.fit_transform(X_train)
         X_test_scale = mmScaler.transform(X_test)
-        return X_train_scale, X_test_scale,'minmax'
+        return X_train_scale, X_test_scale
 
 
 def encoding(encoder, cols, df):
@@ -178,7 +179,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         XGB = XGBClassifier()
         xgb_param_grid = {
             'learning_rate': [0.1, 0.01],
-            'max_depth': [1, 5, 10, 50],
+            'max_depth': [5, 10, 50],
         }
         gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold,n_jobs=-1)
         gsXGB.fit(X_train_scale, y_train)
@@ -231,10 +232,10 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
     elif model == "kmean":
         print("\nKmean start")
         # NearestNeighborsClassification
-        km = KNeighborsClassifier()
+        km = KMeans()
         param = {
             "n_clusters": [3, 5],
-            "random_state" : [0]
+            'n_jobs' : [-1]
         }
         gskm = GridSearchCV(km, param_grid=param, cv=kfold,n_jobs=-1)
         gskm.fit(X_train_scale, y_train)
