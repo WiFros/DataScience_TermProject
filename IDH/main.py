@@ -108,4 +108,5 @@ param = {
 }
 
 best_params, best_score = FindBest.FindBest(param, x, target)
-print("Best Combination, Score:", best_params, best_score)
+print("Best Scaler and Model : ", best_params)
+print("Best Score: : " ,best_score)
