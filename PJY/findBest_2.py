@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 from sklearn.ensemble import BaggingClassifier, GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier
 from sklearn.metrics import mean_absolute_error
@@ -55,9 +56,9 @@ def bestSearchEncoding(param, df, target):
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
 
     for s in scaler:
-        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
+        X_train_scale, X_test_scale,scaler_str = scaled(X_train, X_test, s)
         for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
+            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,scaler_str)
 
     return max(bestDi, key=bestDi.get), max(bestDi.values())
 
@@ -76,19 +77,19 @@ def scaled(X_train, X_test, scaler):
         stdScaler = StandardScaler()
         X_train_scale = stdScaler.fit_transform(X_train)
         X_test_scale = stdScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        return X_train_scale, X_test_scale, 'standard'
 
     elif scaler == "robust":
         robustScaler = RobustScaler()
         X_train_scale = robustScaler.fit_transform(X_train)
         X_test_scale = robustScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        return X_train_scale, X_test_scale,'robust'
 
     elif scaler == "minmax":
         mmScaler = MinMaxScaler()
         X_train_scale = mmScaler.fit_transform(X_train)
         X_test_scale = mmScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        return X_train_scale, X_test_scale,'minmax'
 
 
 def encoding(encoder, cols, df):
@@ -117,7 +118,7 @@ def encoding(encoder, cols, df):
         return onehot_df
 
 
-def predict(model, X_train_scale, X_test_scale, y_train, y_test):
+def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
     '''
     Description: A function that learns targets using models received with scale and encoded data, and to predict targets with learned models.
 
@@ -132,19 +133,21 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
-        print("ada start")
+        print("\nada start")
         # AdaBoostRegressor
         ada_reg = AdaBoostClassifier()
         ada_param = {
             'n_estimators': [25, 50, 100, 200],
             'learning_rate': [0.01, 0.1] #8번 러닝
         }
+
         ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold,n_jobs=-1)
         ada.fit(X_train_scale, y_train)
+        joblib.dump(ada,'./'+model+'_model_'+scal+'.pkl')
         return ada.score(X_test_scale, y_test)
 
     elif model == "decisiontree":
-        print("decision start")
+        print("\ndecision start")
         # DecisionTreeRegressor
         decision_tree_model = DecisionTreeClassifier()
         param_grid = {
@@ -152,10 +155,11 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         }
         gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold,n_jobs=-1)
         gsDT.fit(X_train_scale, y_train)
+        joblib.dump(gsDT,'./'+model+'_model_'+scal+'.pkl')
         return gsDT.score(X_test_scale, y_test)
 
     elif model == "bagging":
-        print("bagging start")
+        print("\nbagging start")
         # BaggingRegressor
         bagging = BaggingClassifier()
         b_param_grid = {
@@ -165,10 +169,11 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         }
         gsBagging = GridSearchCV(bagging, param_grid=b_param_grid, cv=kfold,n_jobs=-1)
         gsBagging.fit(X_train_scale, y_train)
+        joblib.dump(gsBagging,'./'+model+'_model_'+scal+'.pkl')
         return gsBagging.score(X_test_scale, y_test)
 
     elif model == "XGBoost":
-        print("xg start")
+        print("\nxg start")
         # XGBRegressor
         XGB = XGBClassifier()
         xgb_param_grid = {
@@ -177,10 +182,11 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         }
         gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold,n_jobs=-1)
         gsXGB.fit(X_train_scale, y_train)
+        joblib.dump(gsXGB,'./'+model+'_model_'+scal+'.pkl')
         return gsXGB.score(X_test_scale, y_test)
 
     elif model == "randomforest":
-        print("random forest start")
+        print("\nrandom forest start")
         # RandomForestRegressor
         forest = RandomForestClassifier()
         fo_grid = {
@@ -192,10 +198,11 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         }
         gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold,n_jobs=-1)
         gsRd.fit(X_train_scale, y_train)
+        joblib.dump(gsRd,'./'+model+'_model_'+scal+'.pkl')
         return gsRd.score(X_test_scale, y_test)
 
     elif model == "gradient":
-        print("gradient start")
+        print("\ngradient start")
         # GradientBoostingRegressor
         gbr = GradientBoostingClassifier()
         param = {
@@ -206,4 +213,30 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         }
         gsGd = GridSearchCV(gbr, param_grid=param, cv=kfold,n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
+        joblib.dump(gsGd,'./'+model+'_model_'+scal+'.pkl')
+
         return gsGd.score(X_test_scale, y_test)
+    elif model == "KNN":
+        print("\nKNN start")
+        # NearestNeighborsClassification
+        knn = KNeighborsClassifier()
+        param = {
+            "n_neighbors": [3, 5, 7],
+            "n_jobs" : [-1]
+        }
+        gsKN = GridSearchCV(knn, param_grid=param, cv=kfold,n_jobs=-1)
+        gsKN.fit(X_train_scale, y_train)
+        joblib.dump(gsKN,'./'+model+'_model_'+scal+'.pkl')
+        return gsKN.score(X_test_scale, y_test)
+    elif model == "kmean":
+        print("\nKmean start")
+        # NearestNeighborsClassification
+        km = KNeighborsClassifier()
+        param = {
+            "n_clusters": [3, 5],
+            "random_state" : [0]
+        }
+        gskm = GridSearchCV(km, param_grid=param, cv=kfold,n_jobs=-1)
+        gskm.fit(X_train_scale, y_train)
+        joblib.dump(gskm,'./'+model+'_model_'+scal+'.pkl')
+        return gskm.score(X_test_scale, y_test)
