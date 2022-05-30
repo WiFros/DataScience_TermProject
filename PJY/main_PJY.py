@@ -74,7 +74,7 @@ y = df['class']
 
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
-    "model": ["KNN", "adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest","kmean"]
+    "model": ["kmean", "adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest","KNN"]
 }
 
 best_params, best_score = findBest_2.bestSearch(bestParam, x, y)

@@ -234,8 +234,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         # NearestNeighborsClassification
         km = KMeans()
         param = {
-            "n_clusters": [3, 5],
-            'n_jobs' : [-1]
+            "n_clusters": [3, 5]
         }
         gskm = GridSearchCV(km, param_grid=param, cv=kfold,n_jobs=-1)
         gskm.fit(X_train_scale, y_train)
