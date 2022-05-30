@@ -13,53 +13,79 @@ from sklearn.model_selection import KFold, cross_val_score
 from xgboost import XGBClassifier
 
 
-def bestSearch(param, df, target):
+def FindBest(param, df, target):
+    # FindBest function find best score of scaler and fitting model
+
+    # Parameters
+    # param : list of scaler and model
+    # df : DataFrame
+    # target : Column what we want to predict
+
     scaler = np.array(param.get('scaler'))
     model = np.array(param.get('model'))
-    bestDi = {}
+
+    BestResult = {}
 
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=42)
     for s in scaler:
         X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
-            print(s + ", " + m, bestDi[s + ", " + m])
+            BestResult[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test)
+            print("scaler : " + s + "\n" + "model : " + m, BestResult[s + ", " + m])
 
-    return max(bestDi, key=bestDi.get), max(bestDi.values())
+    return max(BestResult, key=BestResult.get), max(BestResult.values())
 
 
 def scaled(X_train, X_test, scaler):
+
+    # scaled function scales train dataset and test dataset as type of scaler
+
+    # Parameters
+    # X_train : train dataset
+    # X_test : test dataset
+    # scaler : list of scaler
+
     if scaler == "standard":
         stdScaler = StandardScaler()
-        X_train_scale = stdScaler.fit_transform(X_train)
-        X_test_scale = stdScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        X_train_scaled = stdScaler.fit_transform(X_train)
+        X_test_scaled = stdScaler.transform(X_test)
+        return X_train_scaled, X_test_scaled
 
     elif scaler == "robust":
         robustScaler = RobustScaler()
-        X_train_scale = robustScaler.fit_transform(X_train)
-        X_test_scale = robustScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        X_train_scaled = robustScaler.fit_transform(X_train)
+        X_test_scaled = robustScaler.transform(X_test)
+        return X_train_scaled, X_test_scaled
 
     elif scaler == "minmax":
         mmScaler = MinMaxScaler()
-        X_train_scale = mmScaler.fit_transform(X_train)
-        X_test_scale = mmScaler.transform(X_test)
-        return X_train_scale, X_test_scale
+        X_train_scaled = mmScaler.fit_transform(X_train)
+        X_test_scaled = mmScaler.transform(X_test)
+        return X_train_scaled, X_test_scaled
 
 
 def predict(model, X_train_scale, X_test_scale, y_train, y_test):
+
+    # predict function predict score each model
+
+    # Parameters
+    # model : list of model
+    # X_train_scale : scaled train dataset
+    # X_test_scale : scaled test dataset
+    # y_train : data for leaning
+    # y_test : data for predicting
+
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
         print("ada start")
         # AdaBoostClassifier
         ada_reg = AdaBoostClassifier()
-        ada_param = {
+        ada_param_grid = {
             'n_estimators': [25, 50, 100, 200],
             'learning_rate': [0.01, 0.1]  # 8번 러닝
         }
-        ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold, n_jobs=-1)
+        ada = GridSearchCV(ada_reg, param_grid=ada_param_grid, cv=kfold, n_jobs=-1)
         ada.fit(X_train_scale, y_train)
         return ada.score(X_test_scale, y_test)
 
@@ -67,10 +93,10 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         print("decision start")
         # DecisionTreeClassifier
         decision_tree_model = DecisionTreeClassifier()
-        param_grid = {
+        dt_param_grid = {
             'max_depth': [None, 2, 3, 4, 5, 6]
         }
-        gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold, n_jobs=-1)
+        gsDT = GridSearchCV(decision_tree_model, param_grid=dt_param_grid, cv=kfold, n_jobs=-1)
         gsDT.fit(X_train_scale, y_train)
         return gsDT.score(X_test_scale, y_test)
 
@@ -103,14 +129,14 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         print("random forest start")
         # RandomForestClassifier
         forest = RandomForestClassifier()
-        fo_grid = {
+        rf_param_grid = {
             "n_estimators": [200],
             "criterion": ["entropy"],
             "max_depth": [None, 2, 3, 4, 5],
             'n_jobs': [-1]
 
         }
-        gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold, n_jobs=-1)
+        gsRd = GridSearchCV(forest, param_grid=rf_param_grid, cv=kfold, n_jobs=-1)
         gsRd.fit(X_train_scale, y_train)
         return gsRd.score(X_test_scale, y_test)
 
@@ -118,22 +144,21 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         print("gradient start")
         # GradientBoostingClassifier
         gbr = GradientBoostingClassifier()
-        param = {
+        gbr_param_grid = {
             "n_estimators": [25, 50, 100],
             "learning_rate": [0.1, 0.01],
             "subsample": [0.5, 0.01]
-            # 27번
         }
-        gsGd = GridSearchCV(gbr, param_grid=param, cv=kfold, n_jobs=-1)
+        gsGd = GridSearchCV(gbr, param_grid=gbr_param_grid, cv=kfold, n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
         return gsGd.score(X_test_scale, y_test)
     elif model == "KNN":
         print("KNN start")
         # KNeighborsClassifier
         knn = KNeighborsClassifier()
-        param = {
+        knn_param_grid = {
             'n_neighbors': list(range(1, 10)),
         }
-        gsGd = GridSearchCV(knn, param_grid=param, cv=kfold, n_jobs=-1)
+        gsGd = GridSearchCV(knn, param_grid=knn_param_grid, cv=kfold, n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
         return gsGd.score(X_test_scale, y_test)
