@@ -1,17 +1,19 @@
 import joblib
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.ensemble import BaggingClassifier, GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.cluster import KMeans
 import numpy as np
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold, cross_val_score
 from xgboost import XGBClassifier
+from yellowbrick import ROCAUC
+from yellowbrick.classifier import ConfusionMatrix
 
 
 def bestSearch(param, df, target):
@@ -27,41 +29,42 @@ def bestSearch(param, df, target):
     scaler = np.array(param.get('scaler'))
     model = np.array(param.get('model'))
     bestDi = {}
-
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=42)
     for s in scaler:
         X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
-            print(s + ", " + m, bestDi[s + ", " + m])
+            temp, file_path = scoring(m, X_train_scale, X_test_scale, y_train, y_test,s)
+            bestDi[file_path] = temp
+            print(file_path, bestDi[file_path])
 
-    return max(bestDi, key=bestDi.get), max(bestDi.values())
-
-
-def bestSearchEncoding(param, df, target):
-    '''
-    description : A function that finds the optimal combination of scalers, models, and encoders in data containing categorical variables
-
-    :param param:  Dictionary data type, 'scaler', 'model', 'encoding' are key values.
-    :param df: Data to scale and encode
-    :param target: Column to predict
-    :param encoding_cols: Column to encode
-    :return: Returns the best combination with the highest score.
-    '''
-
-    scaler = np.array(param.get('scaler'))
-    model = np.array(param.get('model'))
-    bestDi = {}
+    return bestDi,file_path
+    #return max(bestDi, key=bestDi.get), max(bestDi.values())
 
 
-    X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
-
-    for s in scaler:
-        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
-        for m in model:
-            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
-
-    return max(bestDi, key=bestDi.get), max(bestDi.values())
+#def bestSearchEncoding(param, df, target):
+#    '''
+#    description : A function that finds the optimal combination of scalers, models, and encoders in data containing categorical variables
+#
+#    :param param:  Dictionary data type, 'scaler', 'model', 'encoding' are key values.
+#    :param df: Data to scale and encode
+#    :param target: Column to predict
+#    :param encoding_cols: Column to encode
+#    :return: Returns the best combination with the highest score.
+#    '''
+#
+#    scaler = np.array(param.get('scaler'))
+#    model = np.array(param.get('model'))
+#    bestDi = {}
+#
+#
+#    X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
+#
+#    for s in scaler:
+#        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
+#        for m in model:
+#            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
+#
+#    return max(bestDi, key=bestDi.get), max(bestDi.values())
 
 
 
@@ -134,7 +137,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
-        print("\nada start")
         # AdaBoostRegressor
         ada_reg = AdaBoostClassifier()
         ada_param = {
@@ -148,7 +150,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         return ada.score(X_test_scale, y_test)
 
     elif model == "decisiontree":
-        print("\ndecision start")
         # DecisionTreeRegressor
         decision_tree_model = DecisionTreeClassifier()
         param_grid = {
@@ -160,7 +161,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         return gsDT.score(X_test_scale, y_test)
 
     elif model == "bagging":
-        print("\nbagging start")
         # BaggingRegressor
         bagging = BaggingClassifier()
         b_param_grid = {
@@ -174,7 +174,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         return gsBagging.score(X_test_scale, y_test)
 
     elif model == "XGBoost":
-        print("\nxg start")
         # XGBRegressor
         XGB = XGBClassifier()
         xgb_param_grid = {
@@ -187,7 +186,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         return gsXGB.score(X_test_scale, y_test)
 
     elif model == "randomforest":
-        print("\nrandom forest start")
         # RandomForestRegressor
         forest = RandomForestClassifier()
         fo_grid = {
@@ -203,7 +201,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         return gsRd.score(X_test_scale, y_test)
 
     elif model == "gradient":
-        print("\ngradient start")
         # GradientBoostingRegressor
         gbr = GradientBoostingClassifier()
         param = {
@@ -218,7 +215,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
 
         return gsGd.score(X_test_scale, y_test)
     elif model == "KNN":
-        print("\nKNN start")
         # NearestNeighborsClassification
         knn = KNeighborsClassifier()
         param = {
@@ -229,14 +225,28 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsKN.fit(X_train_scale, y_train)
         joblib.dump(gsKN,'./'+model+'_model_'+scal+'.pkl')
         return gsKN.score(X_test_scale, y_test)
-    elif model == "kmean":
-        print("\nKmean start")
-        # NearestNeighborsClassification
-        km = KMeans()
-        param = {
-            "n_clusters": [3, 5]
-        }
-        gskm = GridSearchCV(km, param_grid=param, cv=kfold,n_jobs=-1)
-        gskm.fit(X_train_scale, y_train)
-        joblib.dump(gskm,'./'+model+'_model_'+scal+'.pkl')
-        return gskm.score(X_test_scale, y_test)
+
+def scoring(model, X_train_scale, X_test_scale, y_train, y_test,scal):
+        model_score = joblib.load('./Model/'+model+'_model_'+scal+'.pkl')
+        model_path = model+'_model_'+scal
+
+        cm = ConfusionMatrix(model_score, classes=['GALAXY', 'QSO', 'STAR'])
+        cm.fit(X_train_scale, y_train)
+        predicted = model_score.predict(X_test_scale)
+        cm.title = model +"-"+ scal
+        cm.score(X_test_scale, y_test)
+        #cm.show()
+        cm.finalize()
+        plt.savefig(model +'-'+ scal+'.png')
+        plt.clf()
+        print(classification_report(y_test, predicted))
+
+        roc = ROCAUC(model_score, classes=['GALAXY', 'QSO', 'STAR'])
+        roc.fit(X_train_scale, y_train)
+        roc.score(X_test_scale, y_test)
+        roc.title = model + scal
+        #roc.show()
+        roc.finalize()
+        plt.savefig(model +'-'+ scal+'.png')
+        plt.clf()
+        return model_score.score(X_test_scale, y_test),model_path

@@ -1,20 +1,34 @@
+import operator
+
+import joblib
 import numpy
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import train_test_split
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import accuracy_score, r2_score
-from sklearn.model_selection import train_test_split, KFold, cross_val_score, StratifiedKFold
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, MinMaxScaler, RobustScaler, LabelEncoder, OneHotEncoder, \
     OrdinalEncoder
-from sklearn.cluster import KMeans
+from sklearn.metrics import confusion_matrix, classification_report
 import numpy as np
 from imblearn.over_sampling import SMOTE
-
+from sklearn.ensemble import BaggingClassifier, GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, OneHotEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
+import numpy as np
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import KFold, cross_val_score
+from xgboost import XGBClassifier
+from yellowbrick.classifier import ConfusionMatrix
+from yellowbrick.classifier import ClassPredictionError
+from yellowbrick.classifier import ROCAUC
 import findBest_2
+
 
 
 def UnderSampling(data, class_name, num_sample):
@@ -74,9 +88,14 @@ y = df['class']
 
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
-    "model": ["kmean", "adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest","KNN"]
+    "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest", "KNN"]
 }
+best_params,models= findBest_2.bestSearch(bestParam, x, y)
 
-best_params, best_score = findBest_2.bestSearch(bestParam, x, y)
-print ("Best Combination, Score:", best_params, best_score)
+print (best_params)
+best_params = sorted(best_params.items(),key=lambda x:x[1],reverse=True)
+best_params = dict(best_params[:5])
+print(best_params)
+
+
 print("End")
