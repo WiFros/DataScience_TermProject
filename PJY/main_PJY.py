@@ -86,11 +86,18 @@ df = df.drop(['obj_ID', 'alpha', 'delta', 'run_ID', 'rerun_ID', 'cam_col', 'fiel
 x = df.drop('class', axis=1)
 y = df['class']
 
+param = {
+    "scaler": ["standard", "robust", "minmax"],
+    "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest", "KNN"]
+}
+best_params,models= findBest_2.bestSearch(param, x, y)
+
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
     "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest", "KNN"]
 }
 best_params,models= findBest_2.bestSearch(bestParam, x, y)
+>>>>>>> parent of cfe5033 (Oversample)
 
 print (best_params)
 best_params = sorted(best_params.items(),key=lambda x:x[1],reverse=True)
