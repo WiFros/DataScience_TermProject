@@ -16,7 +16,7 @@ from yellowbrick import ROCAUC
 from yellowbrick.classifier import ConfusionMatrix
 
 
-def bestSearch(mode, param, df, target):
+def bestSearch(param, df, target):
     '''
     description : A function that finds the best combination of scale and model with only numeric columns
 
@@ -30,24 +30,43 @@ def bestSearch(mode, param, df, target):
     model = np.array(param.get('model'))
     bestDi = {}
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=42)
-    if mode == "score":
-        for s in scaler:
-            X_train_scale, X_test_scale = scaled(X_train, X_test, s)
-            for m in model:
-                temp, file_path = scoring(m, X_train_scale, X_test_scale, y_train, y_test,s)
-                bestDi[file_path] = temp
-                print(file_path, bestDi[file_path])
-    elif mode == "fitting":
-        print("---------------fitting start-------------------")
-        for s in scaler:
-            X_train_scale, X_test_scale = scaled(X_train, X_test, s)
-            for m in model:
-                temp, file_path = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
-                bestDi[file_path] = temp
-                print(file_path, bestDi[file_path])
+    for s in scaler:
+        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
+        for m in model:
+            temp, file_path = scoring(m, X_train_scale, X_test_scale, y_train, y_test,s)
+            bestDi[file_path] = temp
+            print(file_path, bestDi[file_path])
 
     return bestDi,file_path
     #return max(bestDi, key=bestDi.get), max(bestDi.values())
+
+
+#def bestSearchEncoding(param, df, target):
+#    '''
+#    description : A function that finds the optimal combination of scalers, models, and encoders in data containing categorical variables
+#
+#    :param param:  Dictionary data type, 'scaler', 'model', 'encoding' are key values.
+#    :param df: Data to scale and encode
+#    :param target: Column to predict
+#    :param encoding_cols: Column to encode
+#    :return: Returns the best combination with the highest score.
+#    '''
+#
+#    scaler = np.array(param.get('scaler'))
+#    model = np.array(param.get('model'))
+#    bestDi = {}
+#
+#
+#    X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
+#
+#    for s in scaler:
+#        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
+#        for m in model:
+#            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
+#
+#    return max(bestDi, key=bestDi.get), max(bestDi.values())
+
+
 
 def scaled(X_train, X_test, scaler):
     '''
@@ -116,7 +135,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
     '''
 
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
-    model_path = model + '_model_' + scal
+
     if model == "adaboost":
         # AdaBoostRegressor
         ada_reg = AdaBoostClassifier()
@@ -124,11 +143,11 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
             'n_estimators': [25, 50, 100, 200],
             'learning_rate': [0.01, 0.1] #8번 러닝
         }
+
         ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold,n_jobs=-1)
         ada.fit(X_train_scale, y_train)
         joblib.dump(ada,'./'+model+'_model_'+scal+'.pkl')
-        print(ada.best_params_)
-        return ada.score(X_test_scale, y_test),model_path
+        return ada.score(X_test_scale, y_test)
 
     elif model == "decisiontree":
         # DecisionTreeRegressor
@@ -139,8 +158,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold,n_jobs=-1)
         gsDT.fit(X_train_scale, y_train)
         joblib.dump(gsDT,'./'+model+'_model_'+scal+'.pkl')
-        print(gsDT.best_params_)
-        return gsDT.score(X_test_scale, y_test),model_path
+        return gsDT.score(X_test_scale, y_test)
 
     elif model == "bagging":
         # BaggingRegressor
@@ -148,27 +166,24 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         b_param_grid = {
             'n_estimators': [10, 50, 100],#3
             'n_jobs' : [-1]
+
         }
         gsBagging = GridSearchCV(bagging, param_grid=b_param_grid, cv=kfold,n_jobs=-1)
         gsBagging.fit(X_train_scale, y_train)
         joblib.dump(gsBagging,'./'+model+'_model_'+scal+'.pkl')
-        print(gsBagging.best_params_)
-
-        return gsBagging.score(X_test_scale, y_test),model_path
+        return gsBagging.score(X_test_scale, y_test)
 
     elif model == "XGBoost":
         # XGBRegressor
         XGB = XGBClassifier()
         xgb_param_grid = {
-            'learning_rate': [0.2,0.1, 0.01],
-            'max_depth': [5, 10, 20],
+            'learning_rate': [0.1, 0.01],
+            'max_depth': [5, 10, 50],
         }
         gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold,n_jobs=-1)
         gsXGB.fit(X_train_scale, y_train)
         joblib.dump(gsXGB,'./'+model+'_model_'+scal+'.pkl')
-        print(gsXGB.best_params_)
-
-        return gsXGB.score(X_test_scale, y_test),model_path
+        return gsXGB.score(X_test_scale, y_test)
 
     elif model == "randomforest":
         # RandomForestRegressor
@@ -183,9 +198,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold,n_jobs=-1)
         gsRd.fit(X_train_scale, y_train)
         joblib.dump(gsRd,'./'+model+'_model_'+scal+'.pkl')
-        print(gsRd.best_params_)
-
-        return gsRd.score(X_test_scale, y_test),model_path
+        return gsRd.score(X_test_scale, y_test)
 
     elif model == "gradient":
         # GradientBoostingRegressor
@@ -199,9 +212,8 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsGd = GridSearchCV(gbr, param_grid=param, cv=kfold,n_jobs=-1)
         gsGd.fit(X_train_scale, y_train)
         joblib.dump(gsGd,'./'+model+'_model_'+scal+'.pkl')
-        print(gsGd.best_params_)
 
-        return gsGd.score(X_test_scale, y_test),model_path
+        return gsGd.score(X_test_scale, y_test)
     elif model == "KNN":
         # NearestNeighborsClassification
         knn = KNeighborsClassifier()
@@ -212,12 +224,10 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsKN = GridSearchCV(knn, param_grid=param, cv=kfold,n_jobs=-1)
         gsKN.fit(X_train_scale, y_train)
         joblib.dump(gsKN,'./'+model+'_model_'+scal+'.pkl')
-        print(gsKN.best_params_)
-
-        return gsKN.score(X_test_scale, y_test),model_path
+        return gsKN.score(X_test_scale, y_test)
 
 def scoring(model, X_train_scale, X_test_scale, y_train, y_test,scal):
-        model_score = joblib.load('./Model_Over/'+model+'_model_'+scal+'.pkl')
+        model_score = joblib.load('./Model/'+model+'_model_'+scal+'.pkl')
         model_path = model+'_model_'+scal
 
         cm = ConfusionMatrix(model_score, classes=['GALAXY', 'QSO', 'STAR'])
@@ -227,16 +237,16 @@ def scoring(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         cm.score(X_test_scale, y_test)
         #cm.show()
         cm.finalize()
-        plt.savefig(model +'-'+ scal+'Confusion'+'.png')
+        plt.savefig(model +'-'+ scal+'.png')
         plt.clf()
         print(classification_report(y_test, predicted))
 
         roc = ROCAUC(model_score, classes=['GALAXY', 'QSO', 'STAR'])
         roc.fit(X_train_scale, y_train)
         roc.score(X_test_scale, y_test)
-        roc.title = model +"-"+ scal
+        roc.title = model + scal
         #roc.show()
         roc.finalize()
-        plt.savefig(model +'-'+ scal+'ROC'+'.png')
+        plt.savefig(model +'-'+ scal+'.png')
         plt.clf()
         return model_score.score(X_test_scale, y_test),model_path
