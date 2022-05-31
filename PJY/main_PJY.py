@@ -80,17 +80,27 @@ plt.show()
 le = LabelEncoder()
 df["class"] = le.fit_transform(df["class"])
 df["class"] = df["class"].astype(int)
-
 df = df.drop(['obj_ID', 'alpha', 'delta', 'run_ID', 'rerun_ID', 'cam_col', 'field_ID', 'fiber_ID'], axis=1)
-
 x = df.drop('class', axis=1)
 y = df['class']
+
+le_over = LabelEncoder()
+df_over["class"] = le_over.fit_transform(df_over["class"])
+df_over["class"] = df_over["class"].astype(int)
+df_over = df_over.drop(['obj_ID', 'alpha', 'delta', 'run_ID', 'rerun_ID', 'cam_col', 'field_ID', 'fiber_ID'], axis=1)
+x_over = df_over.drop("class", axis=1)
+y_over = df_over["class"]
 
 bestParam = {
     "scaler": ["standard", "robust", "minmax"],
     "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest", "KNN"]
 }
-best_params,models= findBest_2.bestSearch(bestParam, x, y)
+selectedParam = {
+    "scaler": ["standard", "robust", "minmax"],
+    "model": ["decisiontree"]
+}
+
+best_params,models= findBest_2.bestSearch("score",bestParam, x_over, y_over)
 
 print (best_params)
 best_params = sorted(best_params.items(),key=lambda x:x[1],reverse=True)
