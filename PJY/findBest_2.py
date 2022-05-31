@@ -16,19 +16,15 @@ from yellowbrick import ROCAUC
 from yellowbrick.classifier import ConfusionMatrix
 
 
-<<<<<<< HEAD
-def FindBest(param, df, target):
-    # FindBest function find best score of scaler and fitting model
-=======
 def bestSearch(param, df, target):
     '''
     description : A function that finds the best combination of scale and model with only numeric columns
->>>>>>> parent of cfe5033 (Oversample)
 
-    # Parameters
-    # param : list of scaler and model
-    # df : DataFrame
-    # target : Column what we want to predict
+    :param param: Dictionary data type, 'scaler' and 'model' are key values.
+    :param df: Data to scale
+    :param target: Column to predict
+    :return: Returns the best combination with the highest score.
+    '''
 
     scaler = np.array(param.get('scaler'))
     model = np.array(param.get('model'))
@@ -44,8 +40,6 @@ def bestSearch(param, df, target):
     return bestDi,file_path
     #return max(bestDi, key=bestDi.get), max(bestDi.values())
 
-<<<<<<< HEAD
-=======
 
 #def bestSearchEncoding(param, df, target):
 #    '''
@@ -77,16 +71,12 @@ def bestSearch(param, df, target):
 def scaled(X_train, X_test, scaler):
     '''
     Description : A function that scales to the scale received as a parameter.
->>>>>>> parent of cfe5033 (Oversample)
 
-def scaled(X_train, X_test, scaler):
-
-    # scaled function scales train dataset and test dataset as type of scaler
-
-    # Parameters
-    # X_train : train dataset
-    # X_test : test dataset
-    # scaler : list of scaler
+    :param X_train: train data
+    :param X_test: test data
+    :param scaler: Scaler to use, scaler has 'standard', 'minmax', and 'robust'.
+    :return: scaled train data, test data
+    '''
     if scaler == "standard":
         stdScaler = StandardScaler()
         X_train_scale = stdScaler.fit_transform(X_train)
@@ -105,16 +95,44 @@ def scaled(X_train, X_test, scaler):
         X_test_scale = mmScaler.transform(X_test)
         return X_train_scale, X_test_scale
 
+
+def encoding(encoder, cols, df):
+    '''
+    Description:  A function that replaces categorical columns with numeric columns
+
+    :param encoder: Encode to use, encoder has 'labelEncoder', 'oneHotEncoder'
+    :param cols: Categorical columns
+    :param df: data to encode
+    :return: encoded data
+    '''
+    if (encoder == "labelEncoder"):
+        label_df = df.copy()
+        for c in cols:
+            lb = LabelEncoder()
+            lb.fit(list(df[c].values))
+            label_df[c] = lb.transform(list(df[c].values))
+
+        return label_df
+
+    elif (encoder == "oneHotEncoder"):
+        onehot_df = df.copy()
+        for c in cols:
+            onehot_df = pd.get_dummies(data=onehot_df, columns=[c])
+
+        return onehot_df
+
+
 def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
+    '''
+    Description: A function that learns targets using models received with scale and encoded data, and to predict targets with learned models.
 
-    # predict function predict score each model
-
-    # Parameters
-    # model : list of model
-    # X_train_scale : scaled train dataset
-    # X_test_scale : scaled test dataset
-    # y_train : data for leaning
-    # y_test : data for predicting
+    :param model: Model to use for learning, model has '"adaboost", "decisiontree", "bagging", "XGBoost", "randomforest" and "gradient"
+    :param X_train_scale: Scale and encoded data for learning
+    :param X_test_scale: Data to use for predictions
+    :param y_train: Target data for learning
+    :param y_test: Target data to use for predictions
+    :return: Returns the score of the model.
+    '''
 
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
