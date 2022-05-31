@@ -2,16 +2,21 @@ import joblib
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.ensemble import BaggingClassifier, GradientBoostingClassifier, AdaBoostClassifier, RandomForestClassifier
+from sklearn.ensemble import BaggingRegressor, GradientBoostingRegressor, AdaBoostRegressor, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, classification_report
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
 import numpy as np
 from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import KFold, cross_val_score
 from xgboost import XGBClassifier
+from xgboost import XGBRegressor
+from sklearn.linear_model import LinearRegression
 from yellowbrick import ROCAUC
 from yellowbrick.classifier import ConfusionMatrix
 
@@ -33,39 +38,12 @@ def bestSearch(param, df, target):
     for s in scaler:
         X_train_scale, X_test_scale = scaled(X_train, X_test, s)
         for m in model:
-            temp, file_path = scoring(m, X_train_scale, X_test_scale, y_train, y_test,s)
+            temp, file_path = predict(m, X_train_scale, X_test_scale, y_train, y_test,s,"Regressor")
             bestDi[file_path] = temp
             print(file_path, bestDi[file_path])
 
     return bestDi,file_path
     #return max(bestDi, key=bestDi.get), max(bestDi.values())
-
-
-#def bestSearchEncoding(param, df, target):
-#    '''
-#    description : A function that finds the optimal combination of scalers, models, and encoders in data containing categorical variables
-#
-#    :param param:  Dictionary data type, 'scaler', 'model', 'encoding' are key values.
-#    :param df: Data to scale and encode
-#    :param target: Column to predict
-#    :param encoding_cols: Column to encode
-#    :return: Returns the best combination with the highest score.
-#    '''
-#
-#    scaler = np.array(param.get('scaler'))
-#    model = np.array(param.get('model'))
-#    bestDi = {}
-#
-#
-#    X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=33)
-#
-#    for s in scaler:
-#        X_train_scale, X_test_scale = scaled(X_train, X_test, s)
-#        for m in model:
-#            bestDi[s + ", " + m] = predict(m, X_train_scale, X_test_scale, y_train, y_test,s)
-#
-#    return max(bestDi, key=bestDi.get), max(bestDi.values())
-
 
 
 def scaled(X_train, X_test, scaler):
@@ -122,7 +100,7 @@ def encoding(encoder, cols, df):
         return onehot_df
 
 
-def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
+def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal,mode):
     '''
     Description: A function that learns targets using models received with scale and encoded data, and to predict targets with learned models.
 
@@ -133,36 +111,52 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
     :param y_test: Target data to use for predictions
     :return: Returns the score of the model.
     '''
-
+    model_path = model + '_model_' + scal
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 
     if model == "adaboost":
-        # AdaBoostRegressor
-        ada_reg = AdaBoostClassifier()
-        ada_param = {
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            mod = AdaBoostClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            mod = AdaBoostRegressor()
+
+        param = {
             'n_estimators': [25, 50, 100, 200],
             'learning_rate': [0.01, 0.1] #8번 러닝
-        }
-
-        ada = GridSearchCV(ada_reg, param_grid=ada_param, cv=kfold,n_jobs=-1)
+            }
+        ada = GridSearchCV(mod, param_grid=param, cv=kfold,n_jobs=-1)
         ada.fit(X_train_scale, y_train)
         joblib.dump(ada,'./'+model+'_model_'+scal+'.pkl')
-        return ada.score(X_test_scale, y_test)
+        return ada.score(X_test_scale, y_test),model_path
 
     elif model == "decisiontree":
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            mod = DecisionTreeClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            mod = DecisionTreeRegressor()
         # DecisionTreeRegressor
-        decision_tree_model = DecisionTreeClassifier()
+
         param_grid = {
             'max_depth': [None, 2, 3, 4, 5, 6]
         }
-        gsDT = GridSearchCV(decision_tree_model, param_grid=param_grid, cv=kfold,n_jobs=-1)
+        gsDT = GridSearchCV(mod, param_grid=param_grid, cv=kfold,n_jobs=-1)
         gsDT.fit(X_train_scale, y_train)
         joblib.dump(gsDT,'./'+model+'_model_'+scal+'.pkl')
-        return gsDT.score(X_test_scale, y_test)
+        return gsDT.score(X_test_scale, y_test),model_path
 
     elif model == "bagging":
         # BaggingRegressor
-        bagging = BaggingClassifier()
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            bagging = BaggingClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            bagging = BaggingRegressor()
+        # DecisionTreeRegressor
         b_param_grid = {
             'n_estimators': [10, 50, 100],#3
             'n_jobs' : [-1]
@@ -171,11 +165,17 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsBagging = GridSearchCV(bagging, param_grid=b_param_grid, cv=kfold,n_jobs=-1)
         gsBagging.fit(X_train_scale, y_train)
         joblib.dump(gsBagging,'./'+model+'_model_'+scal+'.pkl')
-        return gsBagging.score(X_test_scale, y_test)
+        return gsBagging.score(X_test_scale, y_test),model_path
 
     elif model == "XGBoost":
         # XGBRegressor
-        XGB = XGBClassifier()
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            XGB = XGBClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            XGB = XGBRegressor()
+        # DecisionTreeRegressor
         xgb_param_grid = {
             'learning_rate': [0.1, 0.01],
             'max_depth': [5, 10, 50],
@@ -183,26 +183,37 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsXGB = GridSearchCV(XGB, param_grid=xgb_param_grid, cv=kfold,n_jobs=-1)
         gsXGB.fit(X_train_scale, y_train)
         joblib.dump(gsXGB,'./'+model+'_model_'+scal+'.pkl')
-        return gsXGB.score(X_test_scale, y_test)
+        return gsXGB.score(X_test_scale, y_test),model_path
 
     elif model == "randomforest":
         # RandomForestRegressor
-        forest = RandomForestClassifier()
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            forest = RandomForestClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            forest = RandomForestRegressor()
+        # DecisionTreeRegressor
         fo_grid = {
             "n_estimators": [200],
             "criterion": ["entropy"],
             "max_depth": [None, 2, 3, 4, 5],
             'n_jobs' : [-1]
-
         }
         gsRd = GridSearchCV(forest, param_grid=fo_grid, cv=kfold,n_jobs=-1)
         gsRd.fit(X_train_scale, y_train)
         joblib.dump(gsRd,'./'+model+'_model_'+scal+'.pkl')
-        return gsRd.score(X_test_scale, y_test)
+        return gsRd.score(X_test_scale, y_test),model_path
 
     elif model == "gradient":
         # GradientBoostingRegressor
-        gbr = GradientBoostingClassifier()
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            gbr = GradientBoostingClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            gbr = GradientBoostingRegressor()
+        # DecisionTreeRegressor
         param = {
             "n_estimators": [25, 50, 100],
             "learning_rate": [0.1, 0.01],
@@ -213,10 +224,15 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsGd.fit(X_train_scale, y_train)
         joblib.dump(gsGd,'./'+model+'_model_'+scal+'.pkl')
 
-        return gsGd.score(X_test_scale, y_test)
+        return gsGd.score(X_test_scale, y_test),model_path
     elif model == "KNN":
-        # NearestNeighborsClassification
-        knn = KNeighborsClassifier()
+        if mode == "Classifier":
+            # AdaBoostClassifier
+            knn = KNeighborsClassifier()
+            # AdaBoostRegressor
+        elif mode == "Regressor":
+            knn = KNeighborsRegressor()
+        # DecisionTreeRegressor
         param = {
             "n_neighbors": [3, 5, 7],
             "n_jobs" : [-1]
@@ -224,7 +240,7 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         gsKN = GridSearchCV(knn, param_grid=param, cv=kfold,n_jobs=-1)
         gsKN.fit(X_train_scale, y_train)
         joblib.dump(gsKN,'./'+model+'_model_'+scal+'.pkl')
-        return gsKN.score(X_test_scale, y_test)
+        return gsKN.score(X_test_scale, y_test),model_path
 
 def scoring(model, X_train_scale, X_test_scale, y_train, y_test,scal):
         model_score = joblib.load('./Model/'+model+'_model_'+scal+'.pkl')
