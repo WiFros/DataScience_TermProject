@@ -131,7 +131,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test):
         forest = RandomForestClassifier()
         rf_param_grid = {
             "n_estimators": [200],
-            "criterion": ["entropy"],
             "max_depth": [None, 2, 3, 4, 5],
             'n_jobs': [-1]
 
