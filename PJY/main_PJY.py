@@ -86,11 +86,11 @@ df = df.drop(['obj_ID', 'alpha', 'delta', 'run_ID', 'rerun_ID', 'cam_col', 'fiel
 x = df.drop('class', axis=1)
 y = df['class']
 
-bestParam = {
+param = {
     "scaler": ["standard", "robust", "minmax"],
     "model": ["adaboost", "decisiontree", "bagging", "XGBoost", "gradient", "randomforest", "KNN"]
 }
-best_params,models= findBest_2.bestSearch(bestParam, x, y)
+best_params,models= findBest_2.bestSearch(param, x, y)
 
 print (best_params)
 best_params = sorted(best_params.items(),key=lambda x:x[1],reverse=True)

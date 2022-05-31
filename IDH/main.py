@@ -6,6 +6,7 @@ import FindBest
 
 warnings.filterwarnings('ignore')
 
+
 df = pd.read_csv("../Dataset/star_classification.csv")
 
 print("_____ Data type _____")
