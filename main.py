@@ -9,7 +9,16 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import findbest
 
+
 def UnderSampling(data, class_name, num_sample):
+    """
+    description : A function that divide the sample by class_name and fill each class with the desired number.
+
+    :param data: original dataframe
+    :param class_name: Reference data name
+    :param num_sample: Number of classes you want to increase
+    :return: Returns data frames each increased by num_sample
+    """
     if not isinstance(data, pd.DataFrame):
         raise TypeError
 
@@ -21,10 +30,21 @@ def UnderSampling(data, class_name, num_sample):
 
     return sampled_data.reset_index(drop=True)
 
-def rem_outliers(df):
+def rem_outliers(df,persentage):
+    """
+    description : A function that remove outliers from data frames as many as desired percentages
+
+    :param df: original dataframe
+    :param persentage: Lower, upper percentage of data to be removed
+    :return: Returns the data frames with outliers removed
+    """
+
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError
+
     for i in df.select_dtypes(include='number').columns:
-        qt1 = df[i].quantile(0.25)
-        qt3 = df[i].quantile(0.75)
+        qt1 = df[i].quantile(persentage)
+        qt3 = df[i].quantile(persentage)
         iqr = qt3 - qt1
         lower = qt1 - (1.5 * iqr)
         upper = qt3 + (1.5 * iqr)
@@ -34,7 +54,8 @@ def rem_outliers(df):
         df.drop(max_in, inplace=True)
     return df
 def data_exploration(df,name,mode):
-    print('--------------------- Exploration [original data] ----------------------')
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError
     print(df.head())
     print(df.info())
     print(df.describe().T)
@@ -63,7 +84,11 @@ def data_exploration(df,name,mode):
         else:
             plt.savefig(name +' '+column + '.png')
             plt.clf()
+
 def drop_data(df):
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError
+
     le = LabelEncoder()
     df["class"] = le.fit_transform(df["class"])
     df["class"] = df["class"].astype(int)
@@ -73,20 +98,27 @@ def drop_data(df):
     return x,y
 
 def plot(df,column):
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError
+
     le = LabelEncoder()
-    for i in range(3):#MAIN
+    for i in range(3):
         sns.kdeplot(data=df[df["class"] == i][column], label = le.inverse_transform([i]))
     sns.kdeplot(data=df[column],label = ["All"])
     plt.legend();
+
 def log_plot(df,column):
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError
     le = LabelEncoder()
     for i in range(3):
         sns.kdeplot(data=np.log(df[df["class"] == i][column]), label = le.inverse_transform([i]))
     sns.kdeplot(data=np.log(df[column]),label = ["All"])
     plt.legend();
 
-df = []
 
+#MAIN
+df = []
 df.append(pd.read_csv("star_classification.csv"))
 # OverSampling
 # --------------------------------------------------
@@ -102,11 +134,13 @@ over_data.to_csv("sampled_data.csv", index=False)
 df.append(pd.read_csv("sampled_data.csv"))
 
 # --------------------------------------------------
+
+
 data_exploration(df[0],'original data','show')
 data_exploration(df[1],'oversampled data','show')
-df.append(rem_outliers(df[0]))
+df.append(rem_outliers(df[0]),0.25)
 data_exploration(df[2],'draped outlier-original','show')
-df.append(rem_outliers(df[1]))
+df.append(rem_outliers(df[1]),0.25)
 data_exploration(df[3],'draped outlier-oversample','show')
 
 params = {
@@ -122,7 +156,7 @@ selected_params = {
 # df[0] : original ,df[1] : oversampled, df[2] : droped outlier from original df[3] : droped outlier from oversampled
 
 x,y = drop_data(df[0])
-best_params, models = findBest_2.bestSearch("score", params, x, y)
+best_params, models = findbest.bestSearch("score", params, x, y)
 print(best_params)
 best_params = sorted(best_params.items(), key=lambda x: x[1], reverse=True)
 best_params = dict(best_params[:5])
