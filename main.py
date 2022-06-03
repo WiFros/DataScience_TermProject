@@ -53,12 +53,16 @@ def rem_outliers(df,persentage):
         df.drop(min_in, inplace=True)
         df.drop(max_in, inplace=True)
     return df
+
+
 def data_exploration(df,name,mode):
     if not isinstance(df, pd.DataFrame):
         raise TypeError
+    #data description
     print(df.head())
     print(df.info())
     print(df.describe().T)
+    #data count plot about class
     df["class"].value_counts()
     sns.countplot(df["class"], palette="Set3")
     plt.title(name, fontsize=10)
@@ -67,7 +71,7 @@ def data_exploration(df,name,mode):
     else:
         plt.savefig(name+' count plot'+'.png')
         plt.clf()
-
+    # covarience matrix
     f, ax = plt.subplots(figsize=(12, 8))
     sns.heatmap(df.corr(), cmap="PuBu", annot=True, linewidths=0.5, fmt='.2f', ax=ax)
     if mode == 'show':
@@ -75,6 +79,8 @@ def data_exploration(df,name,mode):
     else:
         plt.savefig(name +' covariance matrix'+'.png')
         plt.clf()
+
+    # each column's plot graph
     for column in ['alpha', 'delta', 'r', 'i', 'field_ID', 'redshift', 'plate', 'MJD', 'fiber_ID']:
         plt.figure(figsize=(12, 6))
         sns.histplot(data=df, x=column, kde=True, hue="class")
