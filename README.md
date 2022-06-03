@@ -58,8 +58,10 @@ Since the data of the original dataset is three times as many as other classes i
 First we under sampling the data set where class is galaxy. And using SMOTE match the number of classes. SMOTE's operation method is an oversampling method in which samples of classes with a small number of data are imported and a new sample is created by adding arbitrary values to the data.
 
 - over sampling dataset
+- 
 ![image](https://user-images.githubusercontent.com/84771856/171908636-b6608273-43da-4bab-99d2-f10b9d98a698.png)
 The number of oversampled data class
+
 ![image](https://user-images.githubusercontent.com/84771856/171908658-efca6c75-31ac-4d93-985d-d9e76db8ed0b.png)
 
 - data scaling
