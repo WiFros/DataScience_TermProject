@@ -44,7 +44,7 @@ def rem_outliers(df,persentage):
 
     for i in df.select_dtypes(include='number').columns:
         qt1 = df[i].quantile(persentage)
-        qt3 = df[i].quantile(persentage)
+        qt3 = df[i].quantile(1-persentage)
         iqr = qt3 - qt1
         lower = qt1 - (1.5 * iqr)
         upper = qt3 + (1.5 * iqr)
@@ -144,9 +144,9 @@ df.append(pd.read_csv("sampled_data.csv"))
 
 data_exploration(df[0],'original data','show')
 data_exploration(df[1],'oversampled data','show')
-df.append(rem_outliers(df[0]),0.25)
+df.append(rem_outliers(df[0],0.25))
 data_exploration(df[2],'draped outlier-original','show')
-df.append(rem_outliers(df[1]),0.25)
+df.append(rem_outliers(df[1],0.25))
 data_exploration(df[3],'draped outlier-oversample','show')
 
 params = {
@@ -161,7 +161,7 @@ selected_params = {
 
 # df[0] : original ,df[1] : oversampled, df[2] : droped outlier from original df[3] : droped outlier from oversampled
 
-x,y = drop_data(df[0])
+x,y = drop_data(df[2])
 best_params, models = findbest.bestSearch("score", params, x, y)
 print(best_params)
 best_params = sorted(best_params.items(), key=lambda x: x[1], reverse=True)

@@ -33,8 +33,6 @@ def bestSearch(mode, param, df, target):
         raise TypeError
     if not isinstance(mode, str):
         raise TypeError
-    if not isinstance(target, pd.DataFrame):
-        raise TypeError
 
     scaler = np.array(param.get('scaler'))
     model = np.array(param.get('model'))
@@ -42,7 +40,6 @@ def bestSearch(mode, param, df, target):
     X_train, X_test, y_train, y_test = train_test_split(df, target, test_size=0.2, random_state=42)
 
     if mode == "score":
-        print("---------------scoring start-------------------")
         for s in scaler:
             X_train_scale, X_test_scale = scaled(X_train, X_test, s)
             for m in model:
@@ -50,7 +47,6 @@ def bestSearch(mode, param, df, target):
                 bestDi[file_path] = temp
                 print(file_path, bestDi[file_path])
     elif mode == "fit":
-        print("---------------fitting start-------------------")
         for s in scaler:
             X_train_scale, X_test_scale = scaled(X_train, X_test, s)
             for m in model:
@@ -94,7 +90,6 @@ def scaled(X_train, X_test, scaler):
         X_train_scale = mmScaler.fit_transform(X_train)
         X_test_scale = mmScaler.transform(X_test)
         return X_train_scale, X_test_scale
-
 
 def encoding(encoder, cols, df):
     '''
@@ -142,20 +137,6 @@ def predict(model, X_train_scale, X_test_scale, y_train, y_test,scal,mode):
     :param mode: Regressor or Classifier
     :return: Returns the score of the model.
     '''
-    if not isinstance(model, str):
-        raise TypeError
-    if not isinstance(X_test_scale, pd.DataFrame):
-        raise TypeError
-    if not isinstance(X_test_scale, pd.DataFrame):
-        raise TypeError
-    if not isinstance(y_train, pd.DataFrame):
-        raise TypeError
-    if not isinstance(y_test, pd.DataFrame):
-        raise TypeError
-    if not isinstance(scal, str):
-        raise TypeError
-    if not isinstance(mode, str):
-        raise TypeError
 
     kfold = KFold(n_splits=5, shuffle=True, random_state=0)
     model_path = model + '_model_' + scal
@@ -290,25 +271,11 @@ def scoring(model, X_train_scale, X_test_scale, y_train, y_test,scal,mode):
     :param mode: Regressor or Classifier
     :return: Returns the score of the model, path file.
     '''
-    if not isinstance(model, str):
-        raise TypeError
-    if not isinstance(X_test_scale, pd.DataFrame):
-        raise TypeError
-    if not isinstance(X_test_scale, pd.DataFrame):
-        raise TypeError
-    if not isinstance(y_train, pd.DataFrame):
-        raise TypeError
-    if not isinstance(y_test, pd.DataFrame):
-        raise TypeError
-    if not isinstance(scal, str):
-        raise TypeError
-    if not isinstance(mode, str):
-        raise TypeError
 
-    model_score = joblib.load('./Model_Over_Regressor/'+model+'_model_'+scal+'.pkl')
+    model_score = joblib.load('./Model_Over/'+model+'_model_'+scal+'.pkl')
     model_path = model+'_model_'+scal
 
-    if  mode == "Classifier":
+    if mode == "Classifier":
         cm = ConfusionMatrix(model_score, classes=['GALAXY', 'QSO', 'STAR'])
         cm.fit(X_train_scale, y_train)
         predicted = model_score.predict(X_test_scale)
