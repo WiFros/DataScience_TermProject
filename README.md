@@ -1,5 +1,5 @@
 # DataScience_TermProject
-Gachon.Univ [DataScience course Term Project]
+[DataScience course Term Project]
 
 ### INTRODUCTION
 There are tens of millions of celestial bodies in the universe. Each object will be divided into not only one type, but also galaxies, nebulae, and planets. However, it is not easy to determine the type of celestial body when we use optical telescopes to make observations. 
